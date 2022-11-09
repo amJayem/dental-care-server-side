@@ -43,6 +43,14 @@ async function run (){
             const cursor = serviceCollection.find(query).limit(3);
             const services = await cursor.toArray();
             res.send(services);
+        });
+
+        // creating a new service to db
+        app.post('/services', async(req,res)=>{
+            const newService = req.body;
+            // console.log(newService);
+            const result = await serviceCollection.insertOne(newService);
+            res.send(result);
         })
     }
     finally{}
