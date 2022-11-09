@@ -65,12 +65,33 @@ async function run (){
 
             res.send(result);
         });
+
+        // getting all reviews from server
         app.get('/reviews', async(req, res) => {
             const query = {};
             const cursor = reviewCollection.find(query);
             const reviews = await cursor.toArray();
 
             res.send(reviews);
+        });
+
+        // getting all reviews by service_id from server
+        // app.get('/reviews/:id', async(req, res) => {
+        //     const id = req.params.id;
+        //     const query = { service_id: id };
+        //     const review = await reviewCollection.find();
+
+        //     res.send(review);
+        // });
+
+        // reading reviews by user mail
+        app.get('/my-reviews', async (req, res) => {
+            const getEmail = req.query.email;
+            const query = {email: getEmail};
+            const cursor = reviewCollection.find(query);
+            const review = await cursor.toArray();
+
+            res.send(review);
         })
     }
     finally{}
@@ -83,5 +104,5 @@ app.get('/', (req, res)=>{
 });
 
 app.listen(port, ()=>{
-    console.log('Dental server is running on: ', port);;
+    console.log('Dental server is running on: ', port);
 });
