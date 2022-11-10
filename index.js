@@ -108,12 +108,27 @@ async function run (){
         // reading reviews by user mail
         app.get('/my-reviews',verifyJWT, async (req, res) => {
             const getEmail = req.query.email;
+            const decoded = req.decoded;
+            // console.log(decoded.email,getEmail);
+            if(decoded.email !== getEmail){
+                res.status(401).send({message: 'ja beta vag'})
+            }
             const query = {email: getEmail};
             const cursor = reviewCollection.find(query);
             const review = await cursor.toArray();
 
             res.send(review);
         });
+
+        // delete user review
+        app.delete('/my-reviews/:id', async(req, res)=>{
+            const id = req.params.id;
+            console.log(id);
+            const query = { _id: ObjectId(id)};
+            const result = await reviewCollection.deleteOne(query);
+
+            res.send(result);
+        })
 
         // jwt
         app.post('/jwt', (req, res) => {
