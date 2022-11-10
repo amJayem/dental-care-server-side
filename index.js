@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 
@@ -15,6 +16,25 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.42e2srw.mongodb.net/?retryWrites=true&w=majority`;
 // console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+// jwt verifying
+const verifyJWT = (req,res,next)=>{
+    // console.log(req.headers.authorization);
+    const authHeaders = req.headers.authorization;
+    if(!authHeaders){
+        return res.status(401).send({message: 'unauthorized access'});
+    }
+    const token = authHeaders.split(" ")[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
+        if(err){
+            return res.status(401).send({message: 'unauthorized access'});
+        }
+        req.decoded = decoded;
+        next();
+    });
+
+}
 
 async function run (){
     try{
@@ -59,6 +79,7 @@ async function run (){
 
         // api for storing reviews
         app.post('/reviews', async(req, res) => {
+            
             const reviews = req.body;
             // console.log(reviews);
             const result = await reviewCollection.insertOne(reviews);
@@ -85,13 +106,23 @@ async function run (){
         // });
 
         // reading reviews by user mail
-        app.get('/my-reviews', async (req, res) => {
+        app.get('/my-reviews',verifyJWT, async (req, res) => {
             const getEmail = req.query.email;
             const query = {email: getEmail};
             const cursor = reviewCollection.find(query);
             const review = await cursor.toArray();
 
             res.send(review);
+        });
+
+        // jwt
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            // console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+            // require('crypto').randomBytes(64).toString('hex')
+            
+            res.send({token});
         })
     }
     finally{}
