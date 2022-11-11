@@ -77,9 +77,8 @@ async function run (){
 
         // api for storing reviews
         app.post('/reviews', async(req, res) => {
-            
             const reviews = req.body;
-            // console.log(reviews);
+            console.log(reviews);
             const result = await reviewCollection.insertOne(reviews);
 
             res.send(result);
@@ -88,7 +87,7 @@ async function run (){
         // getting all reviews from server
         app.get('/reviews', async(req, res) => {
             const query = {};
-            const cursor = reviewCollection.find(query);
+            const cursor = reviewCollection.find(query).sort({ _id: -1});
             const reviews = await cursor.toArray();
 
             res.send(reviews);
