@@ -9,9 +9,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middle wares
-app.use(cors())
+app.use(cors());
 app.use(express.json());
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.42e2srw.mongodb.net/?retryWrites=true&w=majority`;
 // console.log(uri);
@@ -33,7 +32,6 @@ const verifyJWT = (req,res,next)=>{
         req.decoded = decoded;
         next();
     });
-
 }
 
 async function run (){
@@ -96,16 +94,46 @@ async function run (){
             res.send(reviews);
         });
 
-        // getting all reviews by service_id from server
-        // app.get('/reviews/:id', async(req, res) => {
-        //     const id = req.params.id;
-        //     const query = { service_id: id };
-        //     const review = await reviewCollection.find();
+        // getting a review by review _id
+        app.get('/reviews/:id', async(req,res)=>{
+            try{
+                const { id } = req.params;
+                // console.log(id);
+                const review = await reviewCollection.findOne({ _id: ObjectId(id)});
+                res.send({
+                    success: true,
+                    data: review
+                });
 
-        //     res.send(review);
-        // });
+            } catch(e){
+                res.send({
+                    success: false,
+                    error: e.message,
+                });
+            };
+        });
 
-        // reading reviews by user mail
+        // update review by user
+        app.patch('/reviews/:id', async(req,res)=>{
+            try{
+                const { id } = req.params;
+                const query = { _id: ObjectId(id)}
+                const result = await reviewCollection.updateOne(query, {
+                    $set: req.body
+                });
+
+                // console.log(req.body);
+                res.send(result);
+            }
+            catch (error) {
+                res.send({
+                  success: false,
+                  error: error.message,
+                });
+            }
+        });
+
+        // reading reviews by user email
         app.get('/my-reviews',verifyJWT, async (req, res) => {
             const getEmail = req.query.email;
             const decoded = req.decoded;
@@ -134,7 +162,7 @@ async function run (){
         app.post('/jwt', (req, res) => {
             const user = req.body;
             // console.log(user);
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1d'});
             // require('crypto').randomBytes(64).toString('hex')
             
             res.send({token});
