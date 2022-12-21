@@ -78,7 +78,7 @@ async function run (){
         // api for storing reviews
         app.post('/reviews', async(req, res) => {
             const reviews = req.body;
-            console.log(reviews);
+            // console.log(reviews);
             const result = await reviewCollection.insertOne(reviews);
 
             res.send(result);
@@ -150,7 +150,7 @@ async function run (){
         // delete user review
         app.delete('/my-reviews/:id', async(req, res)=>{
             const id = req.params.id;
-            console.log(id);
+            // console.log(id);
             const query = { _id: ObjectId(id)};
             const result = await reviewCollection.deleteOne(query);
 
